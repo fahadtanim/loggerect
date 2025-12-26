@@ -1,0 +1,28 @@
+# Source files (included in dist)
+src/
+
+# Website
+website/
+
+# Config files
+tsconfig.json
+rollup.config.js
+.eslintrc*
+.prettierrc*
+
+# Development files
+*.test.ts
+*.spec.ts
+__tests__/
+coverage/
+
+# IDE
+.idea/
+.vscode/
+
+# Misc
+.gitignore
+.npmignore
+*.log
+
+
