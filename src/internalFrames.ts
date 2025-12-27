@@ -5,6 +5,7 @@ import type { StackFrame } from "./stackParser";
  */
 const internalPatterns = [
   /logrect/i,
+  /loggerect/i, // Also match loggerect (correct spelling)
   /logger\.ts/,
   /logger\.js/,
   /sourceTracker/,
@@ -22,6 +23,9 @@ const internalPatterns = [
   /react-dom/,
   /react\/jsx/,
   /async_hooks/,
+  /loggerUtils/,
+  /consoleOutput/,
+  /logProcessor/,
 ];
 
 /**

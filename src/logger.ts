@@ -83,7 +83,8 @@ class Logger {
    * Log at trace level
    */
   trace(message: string, data?: unknown): void {
-    const entry = createLogEntry("trace", message, data, this.context, 3);
+    // Skip frames: Error creation, getSourceLocation, createLogEntry, Logger.trace, user code
+    const entry = createLogEntry("trace", message, data, this.context, 4);
     processLog(entry);
   }
 
@@ -91,7 +92,8 @@ class Logger {
    * Log at debug level
    */
   debug(message: string, data?: unknown): void {
-    const entry = createLogEntry("debug", message, data, this.context, 3);
+    // Skip frames: Error creation, getSourceLocation, createLogEntry, Logger.debug, user code
+    const entry = createLogEntry("debug", message, data, this.context, 4);
     processLog(entry);
   }
 
@@ -99,7 +101,8 @@ class Logger {
    * Log at info level
    */
   info(message: string, data?: unknown): void {
-    const entry = createLogEntry("info", message, data, this.context, 3);
+    // Skip frames: Error creation, getSourceLocation, createLogEntry, Logger.info, user code
+    const entry = createLogEntry("info", message, data, this.context, 4);
     processLog(entry);
   }
 
@@ -107,7 +110,8 @@ class Logger {
    * Log at warn level
    */
   warn(message: string, data?: unknown): void {
-    const entry = createLogEntry("warn", message, data, this.context, 3);
+    // Skip frames: Error creation, getSourceLocation, createLogEntry, Logger.warn, user code
+    const entry = createLogEntry("warn", message, data, this.context, 4);
     processLog(entry);
   }
 
@@ -115,7 +119,8 @@ class Logger {
    * Log at error level
    */
   error(message: string, data?: unknown): void {
-    const entry = createLogEntry("error", message, data, this.context, 3);
+    // Skip frames: Error creation, getSourceLocation, createLogEntry, Logger.error, user code
+    const entry = createLogEntry("error", message, data, this.context, 4);
     processLog(entry);
   }
 
@@ -123,7 +128,7 @@ class Logger {
    * Log at any level
    */
   log(level: LogLevel, message: string, data?: unknown): void {
-    const entry = createLogEntry(level, message, data, this.context, 3);
+    const entry = createLogEntry(level, message, data, this.context, 4);
     processLog(entry);
   }
 
@@ -139,7 +144,7 @@ class Logger {
       `${badge} Render`,
       props ? { props: summarizeProps(props) } : undefined,
       { ...this.context, componentName },
-      3
+      4
     );
     processLog(entry);
   }
@@ -154,7 +159,7 @@ class Logger {
       `${badge} Mounted`,
       undefined,
       { ...this.context, componentName },
-      3
+      4
     );
     processLog(entry);
   }
@@ -169,7 +174,7 @@ class Logger {
       `${badge} Unmounted`,
       undefined,
       { ...this.context, componentName },
-      3
+      4
     );
     processLog(entry);
   }
@@ -189,7 +194,7 @@ class Logger {
       `${badge} Props changed`,
       changes,
       { ...this.context, componentName },
-      3
+      4
     );
     processLog(entry);
   }
@@ -211,7 +216,7 @@ class Logger {
       `${badge} State "${stateName}" changed`,
       { prev: prevValue, next: nextValue },
       { ...this.context, componentName },
-      3
+      4
     );
     processLog(entry);
   }

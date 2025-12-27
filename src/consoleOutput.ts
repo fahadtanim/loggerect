@@ -48,7 +48,16 @@ export function outputToConsole(entry: LogEntry): void {
       method(format);
     } else {
       // Browser: CSS styling with %c format
-      method(format, ...args);
+      // To preserve browser's native source location, we need to ensure the actual data
+      // is passed as a separate argument so the browser can track where it came from
+      if (!onServer && entry.data !== undefined) {
+        // For browser: log formatted message first, then data separately
+        // This allows browser to show source location for the data object
+        method(format, ...args);
+        // The data will be logged separately below, preserving its source location
+      } else {
+        method(format, ...args);
+      }
     }
 
     // Log additional data on separate lines if present with full context
@@ -106,6 +115,7 @@ export function outputToConsole(entry: LogEntry): void {
               entry.lineNumber ? `:${entry.lineNumber}` : ""
             }`
           : "";
+        // Log formatted message first
         safeConsole.log(
           `%c[%s] %c%s %s %c| 📊 ${componentInfo}${functionInfo} Data:%c${sourceInfo}`,
           "color: #6B7280; font-size: 10px;",
@@ -114,9 +124,11 @@ export function outputToConsole(entry: LogEntry): void {
           levelBadge,
           entry.level.toUpperCase(),
           "color: #10B981; font-weight: bold;",
-          "color: #6B7280; font-size: 10px;",
-          entry.data
+          "color: #6B7280; font-size: 10px;"
         );
+        // Log data as separate argument so browser can show its source location
+        // The browser will show where this data object came from in the stack trace
+        safeConsole.log(entry.data);
       }
     }
 

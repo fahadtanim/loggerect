@@ -57,21 +57,35 @@ export function getSourceLocation(skipFrames = 0): SourceLocation {
     }
 
     // Find the first non-internal frame after skipping
-    let userFrameIndex = 0;
-    let skipped = 0;
+    // Strategy: Skip all internal frames first, then skip the specified number of user frames
+    let userFrameIndex = -1;
+    let skippedUserFrames = 0;
 
+    // First, skip all internal loggerect frames
     for (let i = 0; i < frames.length; i++) {
       const frame = frames[i];
       if (!isInternalFrame(frame)) {
-        if (skipped >= skipFrames) {
+        // Found a user frame
+        if (skippedUserFrames >= skipFrames) {
           userFrameIndex = i;
           break;
         }
-        skipped++;
+        skippedUserFrames++;
       }
     }
 
-    const targetFrame = frames[userFrameIndex];
+    // If we didn't find a user frame after skipping, try to find any non-internal frame
+    if (userFrameIndex === -1) {
+      for (let i = 0; i < frames.length; i++) {
+        const frame = frames[i];
+        if (!isInternalFrame(frame)) {
+          userFrameIndex = i;
+          break;
+        }
+      }
+    }
+
+    const targetFrame = userFrameIndex >= 0 ? frames[userFrameIndex] : null;
 
     if (targetFrame) {
       result.functionName = targetFrame.functionName;
