@@ -1,0 +1,3 @@
+[submodule "loggerect-website"]
+	path = loggerect-website
+	url = https://github.com/fahadtanim/loggerect-website.git
