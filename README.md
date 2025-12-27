@@ -1,9 +1,19 @@
-# 🟩 loggerect
+<p align="center">
+  <img src="https://raw.githubusercontent.com/fahadtanim/loggerect/main/loggerect.png" alt="loggerect" width="200" />
+</p>
 
-A powerful, zero-dependency React logger with full source path tracking, TypeScript decorators, and environment-aware output. See exactly where your logs come from.
+<h1 align="center">loggerect</h1>
 
-[![npm version](https://img.shields.io/npm/v/loggerect.svg)](https://www.npmjs.com/package/loggerect)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+  A powerful, zero-dependency React logger with full source path tracking, TypeScript decorators, and environment-aware output. See exactly where your logs come from.
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/loggerect"><img src="https://img.shields.io/npm/v/loggerect.svg" alt="npm version" /></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
+  <a href="https://www.npmjs.com/package/loggerect"><img src="https://img.shields.io/npm/dm/loggerect.svg" alt="npm downloads" /></a>
+  <a href="https://bundlephobia.com/package/loggerect"><img src="https://img.shields.io/bundlephobia/minzip/loggerect" alt="bundle size" /></a>
+</p>
 
 ## ✨ Features
 
@@ -432,6 +442,42 @@ class MyService {
 }
 ```
 
+## 🎨 Log Levels & Badge Colors
+
+loggerect uses styled badges with consistent colors for each log level:
+
+**Visual demonstration:**
+
+<div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0;">
+  <span style="background: rgba(107, 114, 128, 0.2); color: #9CA3AF; padding: 2px 8px; border-radius: 4px; font-weight: 600;">🔍 TRACE</span>
+  <span style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 2px 8px; border-radius: 4px; font-weight: 600;">🐛 DEBUG</span>
+  <span style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 2px 8px; border-radius: 4px; font-weight: 600;">ℹ️ INFO</span>
+  <span style="background: rgba(234, 179, 8, 0.2); color: #eab308; padding: 2px 8px; border-radius: 4px; font-weight: 600;">⚠️ WARN</span>
+  <span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 8px; border-radius: 4px; font-weight: 600;">❌ ERROR</span>
+</div>
+
+| Level     | Badge                                                                                                                                       | Background Color                  | Text Color | Description                    |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | ---------- | ------------------------------ |
+| **TRACE** | <span style="background: rgba(107, 114, 128, 0.2); color: #9CA3AF; padding: 2px 8px; border-radius: 4px; font-weight: 600;">🔍 TRACE</span> | `rgba(107, 114, 128, 0.2)` (Gray) | `#9CA3AF`  | Most verbose, detailed tracing |
+| **DEBUG** | <span style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 2px 8px; border-radius: 4px; font-weight: 600;">🐛 DEBUG</span>   | `rgba(34, 197, 94, 0.2)` (Green)  | `#22c55e`  | Debug information              |
+| **INFO**  | <span style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 2px 8px; border-radius: 4px; font-weight: 600;">ℹ️ INFO</span>   | `rgba(59, 130, 246, 0.2)` (Blue)  | `#3b82f6`  | General information            |
+| **WARN**  | <span style="background: rgba(234, 179, 8, 0.2); color: #eab308; padding: 2px 8px; border-radius: 4px; font-weight: 600;">⚠️ WARN</span>    | `rgba(234, 179, 8, 0.2)` (Yellow) | `#eab308`  | Warnings                       |
+| **ERROR** | <span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 8px; border-radius: 4px; font-weight: 600;">❌ ERROR</span>   | `rgba(239, 68, 68, 0.2)` (Red)    | `#ef4444`  | Errors                         |
+
+### Additional Badges
+
+| Badge | Usage              |
+| ----- | ------------------ |
+| 🚀    | Component mount    |
+| 💤    | Component unmount  |
+| 🎨    | Component render   |
+| 🔄    | Component update   |
+| 📦    | Prop changes       |
+| 🗃️    | State changes      |
+| ⏱️    | Performance timing |
+
+All badges use a semi-transparent background (20% opacity) with matching text colors for a modern, readable console appearance.
+
 ## ⚙️ Configuration
 
 ```tsx
@@ -472,16 +518,21 @@ configure({
   storageKey: "loggerect_logs",
   maxPersistedLogs: 1000,
 
-  // Custom Styles
+  // Custom Styles (defaults shown below)
   styles: {
+    // TRACE: Gray background (rgba(107, 114, 128, 0.2)), Gray text (#9CA3AF)
     trace:
-      "background: rgba(107, 114, 128, 0.2); color: #9CA3AF; padding: 2px 8px; border-radius: 4px;",
+      "background: rgba(107, 114, 128, 0.2); color: #9CA3AF; padding: 2px 8px; border-radius: 4px; font-weight: 600;",
+    // DEBUG: Green background (rgba(34, 197, 94, 0.2)), Green text (#22c55e)
     debug:
-      "background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 2px 8px; border-radius: 4px;",
-    info: "background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 2px 8px; border-radius: 4px;",
-    warn: "background: rgba(234, 179, 8, 0.2); color: #eab308; padding: 2px 8px; border-radius: 4px;",
+      "background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 2px 8px; border-radius: 4px; font-weight: 600;",
+    // INFO: Blue background (rgba(59, 130, 246, 0.2)), Blue text (#3b82f6)
+    info: "background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 2px 8px; border-radius: 4px; font-weight: 600;",
+    // WARN: Yellow background (rgba(234, 179, 8, 0.2)), Yellow text (#eab308)
+    warn: "background: rgba(234, 179, 8, 0.2); color: #eab308; padding: 2px 8px; border-radius: 4px; font-weight: 600;",
+    // ERROR: Red background (rgba(239, 68, 68, 0.2)), Red text (#ef4444)
     error:
-      "background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 8px; border-radius: 4px;",
+      "background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 8px; border-radius: 4px; font-weight: 600;",
   },
 
   // Custom Badges
@@ -560,13 +611,31 @@ export default function Page() {
 
 ### Pretty Format (Development)
 
-```
-[4:25:51 AM] ℹ️ INFO | Navbar.useLifecycleLogger.useEffect() → 🚀 Mounted @ src/components/Navbar.tsx:9
-[4:25:51 AM] 🐛 DEBUG | Navbar.Navbar.useEffect() → Scroll listener attached @ src/components/Navbar.tsx:8
-[4:25:51 AM] 🐛 DEBUG | 📊 [Navbar].Navbar.useEffect() Data: @ src/components/Navbar.tsx:8
-                        { scrollY: 0 }
-[4:25:52 AM] ⚠️ WARN | DataService.fetchData() → Rate limit approaching @ src/services/DataService.ts:45
-```
+The console output uses styled badges with colors matching each log level. Here's what they look like:
+
+**Example log entries with colored badges:**
+
+<pre style="background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 8px; overflow-x: auto; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; line-height: 1.6;">
+<span style="color: #6B7280;">[4:25:51 AM]</span> <span style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 2px 8px; border-radius: 4px; font-weight: 600;">ℹ️ INFO</span> <span style="color: #9CA3AF;">|</span> Navbar.useLifecycleLogger.useEffect() → 🚀 Mounted <span style="color: #6B7280; font-size: 0.9em;">@ src/components/Navbar.tsx:9</span>
+
+<span style="color: #6B7280;">[4:25:51 AM]</span> <span style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 2px 8px; border-radius: 4px; font-weight: 600;">🐛 DEBUG</span> <span style="color: #9CA3AF;">|</span> Navbar.Navbar.useEffect() → Scroll listener attached <span style="color: #6B7280; font-size: 0.9em;">@ src/components/Navbar.tsx:8</span>
+<span style="color: #6B7280;">[4:25:51 AM]</span> <span style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 2px 8px; border-radius: 4px; font-weight: 600;">🐛 DEBUG</span> <span style="color: #10B981; font-weight: bold;">|</span> 📊 <span style="color: #9CA3AF;">[Navbar].Navbar.useEffect() Data:</span> <span style="color: #6B7280; font-size: 0.9em;">@ src/components/Navbar.tsx:8</span>
+<span style="color: #d4d4d4; padding-left: 2rem;">{ scrollY: 0 }</span>
+
+<span style="color: #6B7280;">[4:25:52 AM]</span> <span style="background: rgba(234, 179, 8, 0.2); color: #eab308; padding: 2px 8px; border-radius: 4px; font-weight: 600;">⚠️ WARN</span> <span style="color: #9CA3AF;">|</span> DataService.fetchData() → Rate limit approaching <span style="color: #6B7280; font-size: 0.9em;">@ src/services/DataService.ts:45</span>
+
+<span style="color: #6B7280;">[4:25:53 AM]</span> <span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 8px; border-radius: 4px; font-weight: 600;">❌ ERROR</span> <span style="color: #9CA3AF;">|</span> AuthService.login() → Authentication failed <span style="color: #6B7280; font-size: 0.9em;">@ src/services/AuthService.ts:23</span>
+
+<span style="color: #6B7280;">[4:25:50 AM]</span> <span style="background: rgba(107, 114, 128, 0.2); color: #9CA3AF; padding: 2px 8px; border-radius: 4px; font-weight: 600;">🔍 TRACE</span> <span style="color: #9CA3AF;">|</span> Component.render() → Rendering child components <span style="color: #6B7280; font-size: 0.9em;">@ src/components/Component.tsx:15</span>
+</pre>
+
+**Badge colors reference:**
+
+- <span style="background: rgba(107, 114, 128, 0.2); color: #9CA3AF; padding: 2px 8px; border-radius: 4px; font-weight: 600;">🔍 TRACE</span> - Gray badge (`rgba(107, 114, 128, 0.2)` bg, `#9CA3AF` text)
+- <span style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 2px 8px; border-radius: 4px; font-weight: 600;">🐛 DEBUG</span> - Green badge (`rgba(34, 197, 94, 0.2)` bg, `#22c55e` text)
+- <span style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 2px 8px; border-radius: 4px; font-weight: 600;">ℹ️ INFO</span> - Blue badge (`rgba(59, 130, 246, 0.2)` bg, `#3b82f6` text)
+- <span style="background: rgba(234, 179, 8, 0.2); color: #eab308; padding: 2px 8px; border-radius: 4px; font-weight: 600;">⚠️ WARN</span> - Yellow badge (`rgba(234, 179, 8, 0.2)` bg, `#eab308` text)
+- <span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 8px; border-radius: 4px; font-weight: 600;">❌ ERROR</span> - Red badge (`rgba(239, 68, 68, 0.2)` bg, `#ef4444` text)
 
 ### JSON Format (Production/Logging Services)
 

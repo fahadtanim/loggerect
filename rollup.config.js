@@ -1,12 +1,40 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
+import terser from '@rollup/plugin-terser';
 import dts from 'rollup-plugin-dts';
+
+const terserOptions = {
+  compress: {
+    pure_getters: true,
+    unsafe: true,
+    unsafe_comps: true,
+    passes: 3,
+    drop_console: false,
+    dead_code: true,
+    unused: true,
+  },
+  mangle: {
+    properties: false,
+  },
+  format: {
+    comments: false,
+    ecma: 2020,
+  },
+};
 
 const commonPlugins = [
   resolve(),
   commonjs(),
+  terser(terserOptions),
 ];
+
+// Tree shaking options for all bundles
+const treeshakeOptions = {
+  moduleSideEffects: false,
+  propertyReadSideEffects: false,
+  tryCatchDeoptimization: false,
+};
 
 export default [
   // Main bundle (includes everything)
@@ -16,13 +44,13 @@ export default [
       {
         file: 'dist/index.js',
         format: 'cjs',
-        sourcemap: true,
+        sourcemap: false,
         exports: 'named',
       },
       {
         file: 'dist/index.esm.js',
         format: 'esm',
-        sourcemap: true,
+        sourcemap: false,
       },
     ],
     plugins: [
@@ -34,6 +62,7 @@ export default [
       }),
     ],
     external: ['react', 'react-dom'],
+    treeshake: treeshakeOptions,
   },
   // Core bundle (SSR-safe, no React)
   {
@@ -42,13 +71,13 @@ export default [
       {
         file: 'dist/core.js',
         format: 'cjs',
-        sourcemap: true,
+        sourcemap: false,
         exports: 'named',
       },
       {
         file: 'dist/core.esm.js',
         format: 'esm',
-        sourcemap: true,
+        sourcemap: false,
       },
     ],
     plugins: [
@@ -60,6 +89,7 @@ export default [
       }),
     ],
     external: ['react', 'react-dom'],
+    treeshake: treeshakeOptions,
   },
   // React bundle (hooks, HOCs, decorators)
   {
@@ -68,13 +98,13 @@ export default [
       {
         file: 'dist/react.js',
         format: 'cjs',
-        sourcemap: true,
+        sourcemap: false,
         exports: 'named',
       },
       {
         file: 'dist/react.esm.js',
         format: 'esm',
-        sourcemap: true,
+        sourcemap: false,
       },
     ],
     plugins: [
@@ -86,6 +116,7 @@ export default [
       }),
     ],
     external: ['react', 'react-dom'],
+    treeshake: treeshakeOptions,
   },
   // Hooks only bundle
   {
@@ -94,13 +125,13 @@ export default [
       {
         file: 'dist/hooks.js',
         format: 'cjs',
-        sourcemap: true,
+        sourcemap: false,
         exports: 'named',
       },
       {
         file: 'dist/hooks.esm.js',
         format: 'esm',
-        sourcemap: true,
+        sourcemap: false,
       },
     ],
     plugins: [
@@ -112,6 +143,7 @@ export default [
       }),
     ],
     external: ['react', 'react-dom'],
+    treeshake: treeshakeOptions,
   },
   // Type declarations
   {

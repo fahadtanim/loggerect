@@ -25,4 +25,8 @@ coverage/
 .npmignore
 *.log
 
+# Source maps (not needed in npm package)
+*.map
+dist/*.map
+
 
