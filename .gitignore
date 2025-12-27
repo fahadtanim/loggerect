@@ -3,6 +3,8 @@ node_modules/
 
 # Build outputs
 dist/
+loggerect-website/out/
+loggerect-website/.next/
 
 # IDE
 .idea/
