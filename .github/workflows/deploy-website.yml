@@ -40,6 +40,11 @@ jobs:
           cache: "npm"
           cache-dependency-path: loggerect-website/package-lock.json
 
+      - name: Clean build directory
+        run: |
+          rm -rf out .next
+          echo "Cleaned build directories"
+
       - name: Install dependencies
         run: npm ci
 
@@ -60,6 +65,19 @@ jobs:
           fi
           echo "Build output verified:"
           ls -la out/ | head -20
+          echo ""
+          echo "Checking HTML for CSS/JS paths:"
+          if [ -f "out/index.html" ]; then
+            echo "CSS links:"
+            grep -o 'href="[^"]*"' out/index.html | grep -E '\.(css|js)' | head -10 || echo "No CSS/JS links found"
+            echo ""
+            echo "First 20 lines of index.html head:"
+            head -50 out/index.html | grep -A 20 "<head" || head -20 out/index.html
+          fi
+          echo ""
+          echo "Checking for _next directory structure:"
+          find out/_next -type f -name "*.css" | head -5 || echo "No CSS files found in _next"
+          find out/_next -type f -name "*.js" | head -5 || echo "No JS files found in _next"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
