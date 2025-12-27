@@ -1,7 +1,7 @@
 {
   "name": "loggerect",
-  "version": "1.0.9",
-  "description": "A powerful, highly configurable React logger with TypeScript decorators, environment-aware logging, and source path tracking",
+  "version": "1.1.0",
+  "description": "A powerful, highly configurable logger for React and Node.js with TypeScript decorators, environment-aware logging, and source path tracking",
   "type": "module",
   "sideEffects": false,
   "main": "dist/index.js",
@@ -88,6 +88,9 @@
   },
   "peerDependenciesMeta": {
     "@babel/core": {
+      "optional": true
+    },
+    "react": {
       "optional": true
     },
     "vite": {

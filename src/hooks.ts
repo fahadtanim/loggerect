@@ -39,7 +39,7 @@ export function useLogger(
   componentName: string,
   options: LoggerHookOptions = {}
 ): Logger {
-  // Extract __source if provided by babel plugin
+  // Extract __source if provided by build plugin (babel, loader, vite)
   const { __source, ...logContext } = options;
 
   // Use useState for lazy initialization (React-compliant, SSR-safe)
@@ -49,7 +49,7 @@ export function useLogger(
       .withTags(...(logContext.tags || []))
       .withMetadata(logContext.metadata || {});
 
-    // If babel plugin injected source, add it to metadata
+    // If build plugin (babel/loader/vite) injected source, add it to metadata
     if (__source) {
       instance = instance.withMetadata({
         __source: {

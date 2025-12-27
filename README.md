@@ -5,7 +5,7 @@
 <h1 align="center">loggerect</h1>
 
 <p align="center">
-  A powerful, zero-dependency React logger with full source path tracking, TypeScript decorators, and environment-aware output. See exactly where your logs come from.
+  A powerful, zero-dependency logger for React and Node.js with full source path tracking, TypeScript decorators, and environment-aware output. See exactly where your logs come from.
 </p>
 
 <p align="center">
@@ -20,7 +20,8 @@
 - 🎯 **Accurate Source Tracking** - See exact file:line in browser console (via build plugins)
 - 🎨 **Beautiful Console Output** - Styled badges, timestamps, and structured formatting
 - 🌈 **Unified Colors** - Server console colors match browser console (ANSI + CSS)
-- ⚛️ **React-First Design** - Hooks, HOCs, and decorators for every use case
+- ⚛️ **React Support** - Hooks, HOCs, and decorators for React (optional)
+- 🖥️ **Node.js Compatible** - Works in pure Node.js without React
 - 🔧 **Highly Configurable** - Customize everything from log levels to badge styles
 - 🌍 **Environment-Aware** - Different behavior for development vs production
 - 📦 **Zero Dependencies** - Lightweight and fast
@@ -36,9 +37,9 @@ npm install loggerect
 
 ## 🚀 Quick Start
 
-### Basic Usage
+### Basic Usage (Node.js & React)
 
-```tsx
+```ts
 import { logger, configure } from "loggerect";
 
 // Configure (optional - has sensible defaults)
@@ -53,6 +54,28 @@ logger.debug("Debug information");
 logger.info("General information");
 logger.warn("Warning message");
 logger.error("Error occurred", { details: "error info" });
+```
+
+### Node.js Usage
+
+```js
+// Pure Node.js - no React needed!
+const { logger } = require("loggerect");
+// or
+import { logger } from "loggerect";
+
+// Use in any Node.js application
+logger.info("Server started", { port: 3000 });
+logger.debug("Processing request", { method: "GET", path: "/api/users" });
+
+// Component-scoped logging (works in Node.js too!)
+const apiLogger = logger.forComponent("API").withTags("http", "rest");
+apiLogger.info("Request received", { userId: 123 });
+
+// Performance timing
+logger.time("databaseQuery");
+await queryDatabase();
+logger.timeEnd("databaseQuery"); // Logs: ⏱️ databaseQuery: 45.23ms
 ```
 
 ### React Hooks
@@ -170,9 +193,9 @@ module.exports = {
 
 ## 📚 API Reference
 
-### Core Logger
+### Core Logger (Node.js & React)
 
-```tsx
+```ts
 import { logger } from 'loggerect';
 
 // Log levels

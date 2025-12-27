@@ -14,7 +14,7 @@ export function createLogEntry(
 ): LogEntry {
   const config = getConfig();
 
-  // Check if babel plugin injected source location
+  // Check if build plugin (babel/loader/vite) injected source location
   const injectedSource = context?.metadata?.__source as
     | {
         file?: string;
@@ -26,7 +26,7 @@ export function createLogEntry(
   // Get runtime source location (fallback)
   const sourceLocation = getSourceLocation(skipFrames);
 
-  // Prioritize injected source from babel plugin over runtime stack trace
+  // Prioritize injected source from build plugin over runtime stack trace
   const sourcePath =
     injectedSource?.file || sourceLocation.filePath || undefined;
   const lineNumber =

@@ -80,55 +80,163 @@ class Logger {
   }
 
   /**
-   * Log at trace level
+   * Helper to merge source information from build plugin into context
+   * @private
    */
-  trace(message: string, data?: unknown): void {
-    // Skip frames: Error creation, getSourceLocation, createLogEntry, Logger.trace, user code
-    const entry = createLogEntry("trace", message, data, this.context, 4);
+  private getContextWithSource(source?: {
+    __source?: {
+      fileName?: string;
+      lineNumber?: number;
+      columnNumber?: number;
+    };
+  }): LogContext {
+    if (source?.__source) {
+      return {
+        ...this.context,
+        metadata: {
+          ...this.context.metadata,
+          __source: {
+            file: source.__source.fileName,
+            line: source.__source.lineNumber,
+            column: source.__source.columnNumber,
+          },
+        },
+      };
+    }
+    return this.context;
+  }
+
+  /**
+   * Log at trace level
+   * @param message - Log message
+   * @param data - Optional data to log
+   * @param source - Optional source location injected by build plugin (loader/vite/babel)
+   */
+  trace(
+    message: string,
+    data?: unknown,
+    source?: {
+      __source?: {
+        fileName?: string;
+        lineNumber?: number;
+        columnNumber?: number;
+      };
+    }
+  ): void {
+    const context = this.getContextWithSource(source);
+    const entry = createLogEntry("trace", message, data, context, 4);
     processLog(entry);
   }
 
   /**
    * Log at debug level
+   * @param message - Log message
+   * @param data - Optional data to log
+   * @param source - Optional source location injected by build plugin (loader/vite/babel)
    */
-  debug(message: string, data?: unknown): void {
-    // Skip frames: Error creation, getSourceLocation, createLogEntry, Logger.debug, user code
-    const entry = createLogEntry("debug", message, data, this.context, 4);
+  debug(
+    message: string,
+    data?: unknown,
+    source?: {
+      __source?: {
+        fileName?: string;
+        lineNumber?: number;
+        columnNumber?: number;
+      };
+    }
+  ): void {
+    const context = this.getContextWithSource(source);
+    const entry = createLogEntry("debug", message, data, context, 4);
     processLog(entry);
   }
 
   /**
    * Log at info level
+   * @param message - Log message
+   * @param data - Optional data to log
+   * @param source - Optional source location injected by build plugin (loader/vite/babel)
    */
-  info(message: string, data?: unknown): void {
-    // Skip frames: Error creation, getSourceLocation, createLogEntry, Logger.info, user code
-    const entry = createLogEntry("info", message, data, this.context, 4);
+  info(
+    message: string,
+    data?: unknown,
+    source?: {
+      __source?: {
+        fileName?: string;
+        lineNumber?: number;
+        columnNumber?: number;
+      };
+    }
+  ): void {
+    const context = this.getContextWithSource(source);
+    const entry = createLogEntry("info", message, data, context, 4);
     processLog(entry);
   }
 
   /**
    * Log at warn level
+   * @param message - Log message
+   * @param data - Optional data to log
+   * @param source - Optional source location injected by build plugin (loader/vite/babel)
    */
-  warn(message: string, data?: unknown): void {
-    // Skip frames: Error creation, getSourceLocation, createLogEntry, Logger.warn, user code
-    const entry = createLogEntry("warn", message, data, this.context, 4);
+  warn(
+    message: string,
+    data?: unknown,
+    source?: {
+      __source?: {
+        fileName?: string;
+        lineNumber?: number;
+        columnNumber?: number;
+      };
+    }
+  ): void {
+    const context = this.getContextWithSource(source);
+    const entry = createLogEntry("warn", message, data, context, 4);
     processLog(entry);
   }
 
   /**
    * Log at error level
+   * @param message - Log message
+   * @param data - Optional data to log
+   * @param source - Optional source location injected by build plugin (loader/vite/babel)
    */
-  error(message: string, data?: unknown): void {
-    // Skip frames: Error creation, getSourceLocation, createLogEntry, Logger.error, user code
-    const entry = createLogEntry("error", message, data, this.context, 4);
+  error(
+    message: string,
+    data?: unknown,
+    source?: {
+      __source?: {
+        fileName?: string;
+        lineNumber?: number;
+        columnNumber?: number;
+      };
+    }
+  ): void {
+    const context = this.getContextWithSource(source);
+    const entry = createLogEntry("error", message, data, context, 4);
     processLog(entry);
   }
 
   /**
    * Log at any level
+   * @param level - Log level
+   * @param message - Log message
+   * @param data - Optional data to log
+   * @param source - Optional source location injected by build plugin (loader/vite/babel)
    */
-  log(level: LogLevel, message: string, data?: unknown): void {
-    const entry = createLogEntry(level, message, data, this.context, 4);
+  log(
+    level: LogLevel,
+    message: string,
+    data?: unknown,
+    source?: {
+      __source?: {
+        fileName?: string;
+        lineNumber?: number;
+        columnNumber?: number;
+      };
+    }
+  ): void {
+    const context = this.getContextWithSource(source);
+    const entry = createLogEntry(level, message, data, context, 4);
     processLog(entry);
   }
 
