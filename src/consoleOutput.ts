@@ -3,6 +3,7 @@ import { getConfig } from "./config";
 import { formatLogEntry, formatTimestamp, getLevelStyle, getLevelBadge } from "./formatter";
 import { safeConsole, isServer } from "./ssr";
 import { getAnsiBadgeStyle, ANSI_COLORS } from "./colors";
+import { inspect } from "util";
 
 /**
  * Get appropriate console method for log level
@@ -72,9 +73,22 @@ export function outputToConsole(entry: LogEntry): void {
               entry.lineNumber ? `:${entry.lineNumber}` : ""
             }`
           : "";
+        
+        // Use util.inspect for proper nested object display with higher depth
+        // Use at least depth 10 to show nested objects properly, but respect config if higher
+        const inspectedData = inspect(entry.data, {
+          depth: Math.max(config.maxDepth || 4, 10), // Show nested objects at least 10 levels deep
+          colors: true, // Enable ANSI colors
+          compact: false, // Use multi-line format for better readability
+          maxArrayLength: config.maxArrayLength || 100,
+          maxStringLength: config.maxStringLength || 1000,
+          breakLength: 80,
+          sorted: false,
+          showHidden: false,
+        });
+        
         safeConsole.log(
-          `${dim}[${timestamp}]${reset} ${badgeStyle.bg}${badgeStyle.text}${bold} ${levelBadge} ${entry.level.toUpperCase()} ${badgeStyle.reset}| 📊 ${componentInfo}${functionInfo} Data:${source}${sourceInfo}${reset}`,
-          entry.data
+          `${dim}[${timestamp}]${reset} ${badgeStyle.bg}${badgeStyle.text}${bold} ${levelBadge} ${entry.level.toUpperCase()} ${badgeStyle.reset}| 📊 ${componentInfo}${functionInfo} Data:${source}${sourceInfo}${reset}\n${inspectedData}`
         );
       } else {
         // Browser: use CSS styling
