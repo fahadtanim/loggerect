@@ -1,6 +1,6 @@
 {
   "name": "loggerect",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A powerful, highly configurable React logger with TypeScript decorators, environment-aware logging, and source path tracking",
   "type": "module",
   "sideEffects": false,

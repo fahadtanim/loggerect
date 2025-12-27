@@ -19,11 +19,13 @@
 
 - 🎯 **Accurate Source Tracking** - See exact file:line in browser console (via build plugins)
 - 🎨 **Beautiful Console Output** - Styled badges, timestamps, and structured formatting
+- 🌈 **Unified Colors** - Server console colors match browser console (ANSI + CSS)
 - ⚛️ **React-First Design** - Hooks, HOCs, and decorators for every use case
 - 🔧 **Highly Configurable** - Customize everything from log levels to badge styles
 - 🌍 **Environment-Aware** - Different behavior for development vs production
 - 📦 **Zero Dependencies** - Lightweight and fast
-- 🖥️ **SSR Compatible** - Works with Next.js, Remix, and other SSR frameworks
+- 🖥️ **SSR Compatible** - Works seamlessly with Next.js, Remix, and other SSR frameworks
+- 🧹 **Smart Filtering** - Automatically filters internal React/Node.js function names
 - 🔌 **Universal Plugin Support** - Works with Vite, Webpack, Turbopack, Rollup, and esbuild
 
 ## 📦 Installation
@@ -575,43 +577,77 @@ configure({
 loggerect provides multiple entry points for different use cases:
 
 ```tsx
-// Full library (React + Core)
-import { logger, useLogger, withLogger, configure } from "loggerect";
+// Main entry - SSR-safe (no React dependencies)
+// Use in server components, API routes, and utility functions
+import { logger, configure, isServer, isClient } from "loggerect";
 
-// Core only (no React dependency) - for SSR/Node.js
-import { logger, configure } from "loggerect/core";
+// React hooks (client components only)
+import { useLogger, useLifecycleLogger, useStateLogger } from "loggerect/hooks";
 
-// React-specific features
+// React HOCs (client components only)
 import { withLogger, withLoggerRef } from "loggerect/react";
 
-// Hooks only
-import { useLogger, useLifecycleLogger, useStateLogger } from "loggerect/hooks";
+// Core only (alternative SSR entry point)
+import { logger, configure } from "loggerect/core";
 ```
+
+### When to Use Which Entry Point
+
+- **`loggerect`** (main): Use in server components, API routes, and any SSR context
+- **`loggerect/hooks`**: Use in client components that need React hooks
+- **`loggerect/react`**: Use in client components that need HOCs
+- **`loggerect/core`**: Alternative SSR entry point (same as main)
 
 ## 🌐 SSR Support
 
-loggerect is fully SSR-compatible. It automatically detects server vs client environments:
+loggerect is fully SSR-compatible with separate entry points for server and client code. The main `loggerect` package is SSR-safe and can be used directly in server components:
 
 ```tsx
-// Works in Next.js, Remix, etc.
-import { useLogger, useLifecycleLogger } from "loggerect";
+// Next.js Server Component (SSR-safe)
+import { logger, isServer } from "loggerect";
 
-export default function Page() {
-  const log = useLogger("Page");
-  useLifecycleLogger("Page"); // Only logs on client
-
-  // Server-side logs work too
-  log.info("Rendering page");
+export default async function Page() {
+  if (isServer()) {
+    const log = logger
+      .forComponent("Page")
+      .withTags("server", "page");
+    
+    log.info("Rendering page on server");
+  }
 
   return <div>Hello World</div>;
 }
 ```
 
+### Entry Points for SSR
+
+```tsx
+// Main entry - SSR-safe (no React dependencies)
+import { logger, configure, isServer, isClient } from "loggerect";
+
+// React hooks (client components only)
+import { useLogger, useLifecycleLogger } from "loggerect/hooks";
+
+// React HOCs (client components only)
+import { withLogger } from "loggerect/react";
+```
+
+### Server Console Colors
+
+loggerect automatically matches console colors between server and browser:
+- **Server console**: Uses ANSI color codes (RGB) matching CSS colors exactly
+- **Browser console**: Uses CSS styling with matching colors
+- **Badge styling**: Same background and text colors on both server and client
+- **Component names**: Automatically extracted and filtered from stack traces
+- **Smart filtering**: Filters out internal React/Node.js function names and minified code
+
+The server console output will look identical to the browser console, with matching badge colors and spacing.
+
 ## 📋 Console Output Examples
 
 ### Pretty Format (Development)
 
-The console output uses styled badges with colors matching each log level. Here's what they look like:
+The console output uses styled badges with colors matching each log level. Colors are consistent between server and browser consoles. Here's what they look like:
 
 **Example log entries with colored badges:**
 

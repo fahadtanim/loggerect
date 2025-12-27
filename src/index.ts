@@ -1,3 +1,10 @@
+/**
+ * Main loggerect entry point - SSR-safe (no React dependencies)
+ * 
+ * For React hooks, use: import { useLogger } from 'loggerect/hooks'
+ * For React HOCs, use: import { withLogger } from 'loggerect/react'
+ */
+
 // Core logger
 export { logger, Logger, trace, debug, info, warn, error } from './logger';
 
@@ -34,43 +41,6 @@ export {
   formatAsJSON,
   safeStringify,
 } from './formatter';
-
-// Decorators (for class components)
-export {
-  Log,
-  LogClass,
-  LogLifecycle,
-  LogRender,
-  LogState,
-  LogErrors,
-  LogAsync,
-  LogDebounced,
-  LogThrottled,
-  LogWhen,
-} from './decorators';
-
-// HOCs (for functional components)
-export {
-  withLogger,
-  withLoggerRef,
-  withLoggerMemo,
-  withErrorLogger,
-} from './hoc';
-
-// Hooks
-export {
-  useLogger,
-  useLifecycleLogger,
-  useRenderLogger,
-  usePropChangeLogger,
-  useStateLogger,
-  useEffectLogger,
-  useCallbackLogger,
-  useMemoLogger,
-  useTimer,
-  useConditionalLogger,
-  useWhyDidYouRender,
-} from './hooks';
 
 // Types
 export type {

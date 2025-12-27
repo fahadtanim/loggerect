@@ -6,10 +6,19 @@ import type {
   PerformanceMeasurement,
   LogrectUserConfig,
 } from "./types";
-import { getConfig, shouldLog, configure, isDevelopment } from "./config";
-import { getSourceLocation, getStackTrace } from "./sourceTracker";
-import { formatLogEntry, formatTimestamp, getLevelStyle, getLevelBadge } from "./formatter";
-import { safePerformanceNow, safeLocalStorage, safeConsole } from "./ssr";
+import { getConfig, configure, isDevelopment } from "./config";
+import { safePerformanceNow, safeConsole } from "./ssr";
+import { createLogEntry, summarizeProps } from "./loggerUtils";
+import { processLog, flushLogs } from "./logProcessor";
+import {
+  addTransport as addTransportUtil,
+  removeTransport as removeTransportUtil,
+} from "./transports";
+import {
+  getPersistedLogs as getPersistedLogsUtil,
+  clearPersistedLogs as clearPersistedLogsUtil,
+  exportLogs as exportLogsUtil,
+} from "./storage";
 
 /**
  * Performance timers storage
@@ -18,261 +27,6 @@ const performanceTimers = new Map<
   string,
   { startTime: number; metadata?: Record<string, unknown> }
 >();
-
-/**
- * Log batch storage
- */
-let logBatch: LogEntry[] = [];
-let batchTimer: ReturnType<typeof setTimeout> | null = null;
-
-/**
- * Persisted logs storage
- */
-const persistedLogs: LogEntry[] = [];
-
-/**
- * Custom transports
- */
-const transports: Set<LogTransport> = new Set();
-
-/**
- * Create a log entry
- */
-function createLogEntry(
-  level: LogLevel,
-  message: string,
-  data?: unknown,
-  context?: LogContext,
-  skipFrames = 2
-): LogEntry {
-  const config = getConfig();
-  
-  // Check if babel plugin injected source location
-  const injectedSource = context?.metadata?.__source as {
-    file?: string;
-    line?: number;
-    column?: number;
-  } | undefined;
-  
-  // Get runtime source location (fallback)
-  const sourceLocation = getSourceLocation(skipFrames);
-
-  // Prioritize injected source from babel plugin over runtime stack trace
-  const sourcePath = injectedSource?.file || sourceLocation.filePath || undefined;
-  const lineNumber = injectedSource?.line || sourceLocation.lineNumber || undefined;
-  const columnNumber = injectedSource?.column || sourceLocation.columnNumber || undefined;
-
-  // Clean metadata - remove __source as it's internal
-  const cleanMetadata = { ...context?.metadata };
-  delete cleanMetadata.__source;
-
-  const entry: LogEntry = {
-    timestamp: new Date(),
-    level,
-    message,
-    data,
-    componentName:
-      context?.componentName || sourceLocation.className || undefined,
-    functionName: sourceLocation.functionName || undefined,
-    sourcePath,
-    lineNumber,
-    columnNumber,
-    tags: context?.tags,
-    metadata: {
-      ...cleanMetadata,
-      ...(context?.componentId && { componentId: context.componentId }),
-    },
-  };
-
-  // Add stack trace for errors
-  if (level === "error" && config.includeStackTrace) {
-    entry.stackTrace = getStackTrace(skipFrames);
-  }
-
-  // Apply filter
-  if (config.filter && !config.filter(entry)) {
-    return entry; // Return but won't be logged
-  }
-
-  // Apply transformer
-  if (config.transformer) {
-    return config.transformer(entry);
-  }
-
-  return entry;
-}
-
-/**
- * Output log entry to console
- * NOTE: We call console methods directly (not through wrappers) so the browser's
- * native source link points to the actual logging call site, not our wrapper.
- */
-function outputToConsole(entry: LogEntry): void {
-  const config = getConfig();
-
-  if (config.silent) return;
-  
-  // Skip if console is not available (SSR safety)
-  if (typeof console === "undefined") return;
-
-  const formatted = formatLogEntry(entry);
-
-  if (Array.isArray(formatted)) {
-    // Pretty format with styling - use single line output for accurate source tracking
-    const [format, ...args] = formatted;
-    
-    // Get the appropriate console method
-    const method = getConsoleMethod(entry.level);
-    
-    // Log the main message
-    method.call(console, format, ...args);
-    
-    // Log additional data on separate lines if present with full context
-    if (entry.data !== undefined) {
-      const timestamp = formatTimestamp(entry.timestamp);
-      const levelStyle = getLevelStyle(entry.level);
-      const levelBadge = getLevelBadge(entry.level);
-      const componentInfo = entry.componentName ? `[${entry.componentName}]` : "";
-      const functionInfo = entry.functionName ? `.${entry.functionName}()` : "";
-      const sourceInfo = entry.sourcePath ? ` @ ${entry.sourcePath}${entry.lineNumber ? `:${entry.lineNumber}` : ""}` : "";
-      console.log(
-        `%c[%s] %c%s %s %c| 📊 ${componentInfo}${functionInfo} Data:%c${sourceInfo}`,
-        "color: #6B7280; font-size: 10px;",
-        timestamp,
-        levelStyle,
-        levelBadge,
-        entry.level.toUpperCase(),
-        "color: #10B981; font-weight: bold;",
-        "color: #6B7280; font-size: 10px;",
-        entry.data
-      );
-    }
-    
-    if (entry.stackTrace) {
-      const timestamp = formatTimestamp(entry.timestamp);
-      const levelStyle = getLevelStyle(entry.level);
-      const levelBadge = getLevelBadge(entry.level);
-      console.log(
-        `%c[%s] %c%s %s %c| 📚 Stack:`,
-        "color: #6B7280; font-size: 10px;",
-        timestamp,
-        levelStyle,
-        levelBadge,
-        entry.level.toUpperCase(),
-        "color: #6B7280;",
-        entry.stackTrace
-      );
-    }
-  } else {
-    // String format (JSON, minimal, detailed)
-    const method = getConsoleMethod(entry.level);
-    method.call(console, formatted);
-    if (entry.data !== undefined && config.format !== "json") {
-      const componentInfo = entry.componentName ? `[${entry.componentName}]` : "";
-      console.log(`   ${componentInfo} Data:`, entry.data);
-    }
-  }
-}
-
-/**
- * Get appropriate console method for log level
- */
-function getConsoleMethod(level: LogLevel): typeof console.log {
-  switch (level) {
-    case "warn":
-      return console.warn;
-    case "error":
-      return console.error;
-    default:
-      return console.log;  // trace, debug, info use console.log
-  }
-}
-
-/**
- * Process a log entry
- */
-function processLog(entry: LogEntry): void {
-  const config = getConfig();
-
-  if (!shouldLog(entry.level)) return;
-
-  // Check filter
-  if (config.filter && !config.filter(entry)) return;
-
-  if (config.batchLogs) {
-    logBatch.push(entry);
-
-    if (!batchTimer) {
-      batchTimer = setTimeout(() => {
-        flushLogs();
-      }, config.batchInterval);
-    }
-  } else {
-    outputToConsole(entry);
-    runTransports(entry);
-
-    if (config.persist) {
-      persistLog(entry);
-    }
-  }
-}
-
-/**
- * Flush batched logs
- */
-function flushLogs(): void {
-  const config = getConfig();
-
-  if (batchTimer) {
-    clearTimeout(batchTimer);
-    batchTimer = null;
-  }
-
-  const batch = [...logBatch];
-  logBatch = [];
-
-  batch.forEach((entry) => {
-    outputToConsole(entry);
-    runTransports(entry);
-
-    if (config.persist) {
-      persistLog(entry);
-    }
-  });
-}
-
-/**
- * Run custom transports
- */
-async function runTransports(entry: LogEntry): Promise<void> {
-  const config = getConfig();
-  const allTransports = [...transports, ...config.transports];
-
-  for (const transport of allTransports) {
-    try {
-      await transport(entry);
-    } catch (error) {
-      console.error("[logrect] Transport error:", error);
-    }
-  }
-}
-
-/**
- * Persist log entry to storage
- */
-function persistLog(entry: LogEntry): void {
-  const config = getConfig();
-
-  persistedLogs.push(entry);
-
-  // Trim if over limit
-  while (persistedLogs.length > config.maxPersistedLogs) {
-    persistedLogs.shift();
-  }
-
-  // Save to localStorage if available (client-side only)
-  safeLocalStorage.setItem(config.storageKey, JSON.stringify(persistedLogs));
-}
 
 /**
  * Main logger class
@@ -571,37 +325,35 @@ class Logger {
    * Add a custom transport
    */
   addTransport(transport: LogTransport): () => void {
-    transports.add(transport);
-    return () => transports.delete(transport);
+    return addTransportUtil(transport);
   }
 
   /**
    * Remove a custom transport
    */
   removeTransport(transport: LogTransport): boolean {
-    return transports.delete(transport);
+    return removeTransportUtil(transport);
   }
 
   /**
    * Get persisted logs
    */
   getPersistedLogs(): LogEntry[] {
-    return [...persistedLogs];
+    return getPersistedLogsUtil();
   }
 
   /**
    * Clear persisted logs
    */
   clearPersistedLogs(): void {
-    persistedLogs.length = 0;
-    safeLocalStorage.removeItem(getConfig().storageKey);
+    clearPersistedLogsUtil();
   }
 
   /**
    * Export logs as JSON
    */
   exportLogs(): string {
-    return JSON.stringify(persistedLogs, null, 2);
+    return exportLogsUtil();
   }
 
   /**
@@ -638,29 +390,6 @@ class Logger {
   isDev(): boolean {
     return isDevelopment();
   }
-}
-
-/**
- * Summarize props for logging (avoid logging full React elements)
- */
-function summarizeProps(
-  props: Record<string, unknown>
-): Record<string, unknown> {
-  const summary: Record<string, unknown> = {};
-
-  for (const [key, value] of Object.entries(props)) {
-    if (key === "children") {
-      summary[key] = typeof value === "string" ? value : "[React Element]";
-    } else if (typeof value === "function") {
-      summary[key] = `[Function: ${value.name || "anonymous"}]`;
-    } else if (value && typeof value === "object" && "$$typeof" in value) {
-      summary[key] = "[React Element]";
-    } else {
-      summary[key] = value;
-    }
-  }
-
-  return summary;
 }
 
 /**
