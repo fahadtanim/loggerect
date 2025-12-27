@@ -11,7 +11,7 @@ export function extractFileName(filePath: string): string {
 }
 
 /**
- * Check if path is a bundled/compiled path (Next.js, webpack, etc.)
+ * Check if path is a bundled/compiled path (Next.js, webpack, Turbopack, etc.)
  */
 export function isBundledPath(filePath: string): boolean {
   return (
@@ -19,8 +19,14 @@ export function isBundledPath(filePath: string): boolean {
     filePath.includes("/chunks/") ||
     filePath.includes("webpack://") ||
     filePath.includes("webpack-internal://") ||
+    filePath.includes("turbopack://") ||
+    filePath.includes("__turbopack__") ||
+    filePath.startsWith("[bundled") ||
     /\.[a-f0-9]{6,}\./.test(filePath) || // hashed filenames like _6e37f64f._.js
-    filePath.includes(".hot-update.")
+    filePath.includes(".hot-update.") ||
+    filePath.includes("node_modules__pnpm") || // Turbopack pnpm format
+    filePath.includes("node_modules__npm") || // Turbopack npm format
+    /^[a-f0-9]{8,}$/.test(filePath.split("/").pop() || "") // Turbopack chunk IDs
   );
 }
 
@@ -36,6 +42,56 @@ export function cleanFilePath(filePath: string): string {
   // For bundled paths, try to extract the actual source file path
   // In SSR, Next.js paths are bundled but we can extract the original path
   if (isBundledPath(cleaned)) {
+    // Handle Turbopack format: [bundled: path]:line or node_modules__pnpm_xxx format
+    // Example: [bundled: node_modules__pnpm_ff82d9a5]:17327
+    const bundledMatch = cleaned.match(/\[bundled:\s*([^\]]+)\]/);
+    if (bundledMatch) {
+      const bundledPath = bundledMatch[1];
+      // Try to extract meaningful path from bundled path
+      // node_modules__pnpm_ff82d9a5 might contain source hints
+      // For now, return the bundled path as-is since it might have useful info
+      return bundledPath;
+    }
+
+    // Handle Turbopack pnpm format: node_modules__pnpm_xxx or similar
+    // Try to extract source path from Turbopack chunk names
+    if (
+      cleaned.includes("node_modules__pnpm") ||
+      cleaned.includes("node_modules__npm")
+    ) {
+      // Turbopack might encode source paths in chunk names
+      // Try to extract from patterns like: node_modules__pnpm_xxx__src__components__Button
+      const turbopackMatch = cleaned.match(
+        /node_modules__(?:pnpm|npm)_[^_]+__(.+)/
+      );
+      if (turbopackMatch) {
+        const extracted = turbopackMatch[1]
+          .replace(/__/g, "/")
+          .replace(/\.(js|ts|tsx|jsx)$/, "");
+        if (extracted && !extracted.match(/^[a-f0-9]+$/)) {
+          return extracted;
+        }
+      }
+    }
+
+    // Handle Turbopack protocol: turbopack://...
+    if (cleaned.includes("turbopack://")) {
+      // Extract path from turbopack:// protocol
+      // Format: turbopack://project/app/components/Button.tsx
+      const turbopackProtocolMatch = cleaned.match(
+        /turbopack:\/\/[^/]+\/(.+?)(?:\?|$|:)/
+      );
+      if (turbopackProtocolMatch) {
+        const extracted = turbopackProtocolMatch[1].replace(
+          /\.(js|ts|tsx|jsx)$/,
+          ""
+        );
+        if (extracted) {
+          return extracted;
+        }
+      }
+    }
+
     // Try to extract file path from Next.js app router structure
     // Examples:
     // - /_next/static/chunks/app/docs/page.js -> app/docs/page
@@ -121,4 +177,3 @@ export function cleanFilePath(filePath: string): string {
 
   return cleaned;
 }
-

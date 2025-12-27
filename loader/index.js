@@ -45,26 +45,50 @@ const LOGRECT_HOCS = ["withLogger", "withLoggerRef"];
 
 /**
  * Clean up file path for display
+ * Extracts meaningful paths from full file paths, handling Next.js app router, pages router, and src/ directories
  */
 function cleanFilePath(filename) {
   if (!filename) return filename;
 
   let cleaned = filename;
 
+  // Remove query strings and hashes
+  cleaned = cleaned.split("?")[0].split("#")[0];
+
+  // Remove file:// prefix
+  cleaned = cleaned.replace(/^file:\/\//, "");
+
+  // Try to extract from common Next.js directory structures
   const markers = ["/src/", "/app/", "/pages/", "/components/", "/lib/"];
 
   for (const marker of markers) {
     const index = cleaned.lastIndexOf(marker);
     if (index !== -1) {
       cleaned = cleaned.slice(index + 1);
+      // Remove file extension for cleaner display
+      cleaned = cleaned.replace(/\.(js|ts|tsx|jsx)$/, "");
       break;
     }
   }
 
-  if (cleaned === filename) {
+  // If no marker found, try to get relative path
+  if (cleaned === filename || cleaned === filename.replace(/^file:\/\//, "")) {
     const parts = cleaned.split(/[/\\]/);
-    if (parts.length > 2) {
+    // Try to find src/, app/, or pages/ in the path
+    let startIndex = -1;
+    for (let i = 0; i < parts.length; i++) {
+      if (parts[i] === "src" || parts[i] === "app" || parts[i] === "pages") {
+        startIndex = i;
+        break;
+      }
+    }
+    if (startIndex !== -1) {
+      cleaned = parts.slice(startIndex).join("/");
+      cleaned = cleaned.replace(/\.(js|ts|tsx|jsx)$/, "");
+    } else if (parts.length > 2) {
+      // Fallback: use last 2 parts
       cleaned = parts.slice(-2).join("/");
+      cleaned = cleaned.replace(/\.(js|ts|tsx|jsx)$/, "");
     }
   }
 

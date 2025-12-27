@@ -57,6 +57,9 @@ export function createLogEntry(
         "node:",
         "anonymous",
         "<anonymous>",
+        "eval",
+        ".eval",
+        "eval()",
       ];
       
       const isInternal = internalPatterns.some((pattern) =>

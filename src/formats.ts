@@ -30,6 +30,9 @@ function isInternalFunctionName(functionName: string): boolean {
     "node:",
     "anonymous",
     "<anonymous>",
+    "eval",
+    ".eval",
+    "eval()",
   ];
   
   return internalPatterns.some((pattern) => functionName.includes(pattern));

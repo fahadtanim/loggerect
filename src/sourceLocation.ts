@@ -98,6 +98,9 @@ export function getSourceLocation(skipFrames = 0): SourceLocation {
           "node:",
           "anonymous",
           "<anonymous>",
+          "eval",
+          ".eval",
+          "eval()",
         ];
         
         const isInternal = internalPatterns.some((pattern) =>
@@ -105,11 +108,25 @@ export function getSourceLocation(skipFrames = 0): SourceLocation {
         );
         
         if (!isInternal) {
+          // Try to extract component name from patterns like "ComponentName.eval()" or "ComponentName.functionName()"
           const classMatch = targetFrame.functionName.match(
             /^([A-Z][a-zA-Z0-9]*)\./
           );
           if (classMatch) {
-            result.className = classMatch[1];
+            const extractedName = classMatch[1];
+            // Only use it if the function part is internal (like eval, anonymous, etc.)
+            const functionPart = targetFrame.functionName.substring(extractedName.length + 1);
+            const isFunctionInternal = internalPatterns.some((pattern) =>
+              functionPart.includes(pattern)
+            ) || functionPart.length === 1; // Single letter functions are minified
+            
+            if (isFunctionInternal) {
+              // If the function part is internal, just use the component name
+              result.className = extractedName;
+            } else {
+              // If it's a real function, extract both
+              result.className = extractedName;
+            }
           } else if (
             /^[A-Z][a-zA-Z0-9]*$/.test(targetFrame.functionName)
           ) {
